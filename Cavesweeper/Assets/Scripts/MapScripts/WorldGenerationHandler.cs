@@ -11,7 +11,7 @@ public class WorldGenerationHandler : MonoBehaviour
     private int trappedRoomsCount;
     [SerializeField] private Vector2Int startingPosition;
     [SerializeField] private Vector2Int endPosition;
-    private float roomDistance = 7.5f;
+    [SerializeField] private float roomDistance;
 
     [Header ("Room Information")]
     [SerializeField] private short[] roomTypeCounts;
@@ -25,12 +25,24 @@ public class WorldGenerationHandler : MonoBehaviour
     [SerializeField] private List<GameObject> monsterTrapRoomPrefab;
     [SerializeField] private List<GameObject> treasureRoomPrefabs;
 
+    [Header ("Wall and Corner Prefabs")]
+    [SerializeField] private List<GameObject> wallPrefabs;
+    [SerializeField] private List<GameObject> cornerPrefabs;
+
     [Header ("Object References")]
     [SerializeField] private Transform roomManager;
 
     private void Awake (){
         Instance = this;
     }
+
+    private void FinishWorldGeneration (){
+        RoomManager.Instance.ClearSurroundingRooms(startingPosition);
+        // RoomManager.Instance.ClearSurroundingRooms(endPosition);
+        GameManager.Instance.SetStartingPlayerPosition(GetWorldPositionFromRoomPosition(startingPosition));
+    }
+
+    #region World Generation
 
     public void GenerateWorld (int trappedRoomsCount){
         this.trappedRoomsCount = trappedRoomsCount;
@@ -46,6 +58,8 @@ public class WorldGenerationHandler : MonoBehaviour
         RoomType[,] roomTypeArray = GenerateRooms();
 
         GenerateRoomStructures(roomTypeArray);
+
+        FinishWorldGeneration();
     }
 
     private void GenerateStartAndEndPoint (){
@@ -150,6 +164,9 @@ public class WorldGenerationHandler : MonoBehaviour
     }
 
     private void GenerateRoomStructures (RoomType[,] roomTypeArray){
+        GameObject[,] cornerArray = GenerateRoomCorners();
+        GameObject[,] wallArray = GenerateRoomWalls();
+
         Room[,] roomArray = new Room[GameManager.worldSize.x, GameManager.worldSize.y];
         for (int x = 0; x < GameManager.worldSize.x; x++){
             for (int y = 0; y < GameManager.worldSize.y; y++){
@@ -157,7 +174,7 @@ public class WorldGenerationHandler : MonoBehaviour
                 GameObject room = Instantiate(GetRandomRoomPrefab(roomTypeArray[x,y]), position, Quaternion.identity);
                 room.transform.parent = roomManager;
                 roomArray[x,y] = room.GetComponent<Room>();
-                roomArray[x,y].InitializeRoom(new Vector2Int(x,y), roomTypeArray[x,y], dangerLevelArray[x,y], false);
+                roomArray[x,y].InitializeRoom(new Vector2Int(x,y), roomTypeArray[x,y], dangerLevelArray[x,y], GetRoomWalls(x, y, wallArray), GetRoomCorners(x, y, cornerArray), false);
             }
         }
 
@@ -167,19 +184,113 @@ public class WorldGenerationHandler : MonoBehaviour
     private GameObject GetRandomRoomPrefab (RoomType roomType){
         switch (roomType){
             case RoomType.empty:
-                return emptyRoomPrefabs[0];
+                return emptyRoomPrefabs[Random.Range(0, emptyRoomPrefabs.Count)];
             case RoomType.trapSpike:
-                return spikeTrapRoomPrefabs[0];
+                return spikeTrapRoomPrefabs[Random.Range(0, spikeTrapRoomPrefabs.Count)];
             case RoomType.trapGas:
-                return gasTrapRoomPrefabs[0];
+                return gasTrapRoomPrefabs[Random.Range(0, gasTrapRoomPrefabs.Count)];
             case RoomType.trapMonster:
-                return monsterTrapRoomPrefab[0];
+                return monsterTrapRoomPrefab[Random.Range(0, monsterTrapRoomPrefab.Count)];
             case RoomType.treasure:
-                return treasureRoomPrefabs[0];
+                return treasureRoomPrefabs[Random.Range(0, treasureRoomPrefabs.Count)];
             default:
                 return defaultRoomPrefab;
         }
     }
+
+    private GameObject[,] GenerateRoomCorners (){
+        GameObject[,] cornerArray = new GameObject[GameManager.worldSize.x + 1, GameManager.worldSize.y + 1];
+        float offset = -(roomDistance / 2);
+        for (int x = 0; x <= GameManager.worldSize.x; x++){
+            for (int y = 0; y <= GameManager.worldSize.y; y++){
+                Vector3 position = new Vector3((x - 1) * roomDistance - offset, 0f, (y - 1) * roomDistance - offset);
+                
+                cornerArray[x, y] = Instantiate(GetCornerType(x, y), position, Quaternion.identity);
+                cornerArray[x, y].transform.parent = roomManager.GetChild(0);
+                cornerArray[x, y].name = "Corner ( X: " + x +", Y: " + y + " )";
+            }
+        }
+
+        return cornerArray;
+    }
+
+    private GameObject GetCornerType (int x, int y){
+        if (x == 0 || x == GameManager.worldSize.x ||
+            y == 0 || y == GameManager.worldSize.y){
+            return cornerPrefabs[0];
+        }else if (dangerLevelArray[x, y] == 0 && dangerLevelArray[x, y - 1] == 0 &&
+                  dangerLevelArray[x - 1, y] == 0 && dangerLevelArray[x - 1, y - 1] == 0){
+            return cornerPrefabs[1];
+        }else{
+            return cornerPrefabs[2];
+        }
+    }
+
+    private GameObject[,] GenerateRoomWalls (){
+        GameObject[,] wallArray = new GameObject[GameManager.worldSize.x * 2 + 1, GameManager.worldSize.y * 2 + 1];
+        for (int x = 0; x <= GameManager.worldSize.x * 2; x++){
+            for (int y = 0; y <= GameManager.worldSize.y * 2; y++){
+                Vector3 position = new Vector3(Mathf.FloorToInt(x / 2) * roomDistance, 0f, Mathf.FloorToInt(y / 2) * roomDistance);
+
+                if (y % 2 == 0){
+                    if (x == GameManager.worldSize.x) continue;
+
+                    wallArray[x, y] = Instantiate(GetWallType(x, y), position, Quaternion.Euler(0f, 0f, 0f));
+                    wallArray[x, y].transform.parent = roomManager.GetChild(1);
+                    wallArray[x, y].name = "Wall ( X: " + x +", Y: " + y + " )";
+                }else{
+                    wallArray[x, y] = Instantiate(GetWallType(x, y), position, Quaternion.Euler(0f, 90f, 0f));
+                    wallArray[x, y].transform.parent = roomManager.GetChild(1);
+                    wallArray[x, y].name = "Wall ( X: " + x +", Y: " + y + " )";
+                }
+                
+            }
+        }
+        return wallArray;
+    }
+
+    private GameObject GetWallType (int x, int y){
+        
+        if (    x == 0
+            ||  y == 0
+            ||  x == GameManager.worldSize.x + 1
+            ||  y == GameManager.worldSize.y * 2 + 1){
+            return wallPrefabs[0];
+        }else{
+            return wallPrefabs[1];
+        }
+    }
+
+    #endregion
+
+    #region Getters
+
+    public Vector3 GetWorldPositionFromRoomPosition (Vector2Int roomPosition){
+        return new Vector3(roomPosition.x * roomDistance, -1.52f, roomPosition.y * roomDistance);
+    }
+
+    private List<GameObject> GetRoomCorners (int x, int y, GameObject[,] cornerArray){
+        List<GameObject> cornerList = new List<GameObject>(){
+            cornerArray[x, y],
+            cornerArray[x + 1, y],
+            cornerArray[x, y + 1],
+            cornerArray[x + 1, y + 1]
+        };
+
+        return cornerList;
+    }
+
+    private List<GameObject> GetRoomWalls (int x, int y, GameObject[,] wallArray){
+        List<GameObject> wallList = new List<GameObject>(){
+            wallArray[x, y],
+            wallArray[x, y + 1],
+            wallArray[x + 1, y + 1],
+            wallArray[x, y + 2]
+        };
+        return wallList;
+    }
+
+    #endregion
 }
 
 
