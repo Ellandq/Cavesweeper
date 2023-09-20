@@ -32,8 +32,14 @@ public class Room : MonoBehaviour
         this.gameObject.name = "Room ( X: " + gridPosition.x +", Y: " + gridPosition.y + " )";
     }
 
-    public void UnlockRoom (Vector2Int direction){
+    #region Room Interactions
+
+    public void UnlockRoom (bool forceUnlockSurroundingRooms = false){
         if (isOpen) return;
+        if (roomType == RoomType.trapGas){
+            UnlockRoom(true);
+            return;
+        }
         isOpen = true;
 
         List<RoomDirection> roomDirections = RoomManager.Instance.GetOpenNeighbourRoomDirections(gridPosition);
@@ -102,17 +108,13 @@ public class Room : MonoBehaviour
             }
         }
 
-        if (dangerLevel == 0){
+        if (dangerLevel == 0 || forceUnlockSurroundingRooms){
             RoomManager.Instance.ClearSurroundingRooms(gridPosition);
             return;
         }
     }
 
-    public void UnlockRoom (){
-        if (isOpen) return;
-        isOpen = true;
-        RoomManager.Instance.ClearSurroundingRooms(gridPosition);
-    }
+    #endregion
 
     #region Getters
 

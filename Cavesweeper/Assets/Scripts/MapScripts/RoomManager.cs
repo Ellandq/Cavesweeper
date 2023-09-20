@@ -24,7 +24,7 @@ public class RoomManager : MonoBehaviour
         List<Room> neighbourList = GetNeighbourRooms(gridPosition);
         
         foreach (Room room in neighbourList){
-            room.UnlockRoom(gridPosition);
+            room.UnlockRoom();
         }
     }
 
