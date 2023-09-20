@@ -55,6 +55,7 @@ public class RoomManager : MonoBehaviour
         List<RoomDirection> directionList = new List<RoomDirection>();
 
         foreach (Room room in neighbourRooms){
+            if (!room.IsOpen()) continue;
             directionList.Add(room.GetRoomDirection(gridPosition));
         }
         return directionList;
@@ -95,8 +96,34 @@ public class RoomManager : MonoBehaviour
         }
     }
 
+    public bool IsWallValidForDestruction (Vector2Int roomPosition, Walls wallDirection){
+        switch (wallDirection){
+            case Walls.south:
+                return GetRoom(new Vector2Int(roomPosition.x, roomPosition.y - 1)).IsOpen();
+            case Walls.north:
+                return GetRoom(new Vector2Int(roomPosition.x, roomPosition.y + 1)).IsOpen();
+            case Walls.west:
+                return GetRoom(new Vector2Int(roomPosition.x - 1, roomPosition.y)).IsOpen();
+            case Walls.east:
+                return GetRoom(new Vector2Int(roomPosition.x + 1, roomPosition.y)).IsOpen();
+            default: 
+                return false;
+        }
+    }
+
     #endregion
 }
+
+// public static class RoomDirection{
+//     public static readonly Vector2Int north = new Vector2Int(0, 1);
+//     public static readonly Vector2Int south = new Vector2Int(0, -1);
+//     public static readonly Vector2Int west = new Vector2Int(-1, 0);
+//     public static readonly Vector2Int east = new Vector2Int(1, 0);
+//     public static readonly Vector2Int northWest = new Vector2Int(-1, 1);
+//     public static readonly Vector2Int northEast = new Vector2Int(1, 1);
+//     public static readonly Vector2Int southWest = new Vector2Int(-1, -1);
+//     public static readonly Vector2Int southEast = new Vector2Int(1, -1);
+// }
 
 public enum RoomType{
     empty, 
