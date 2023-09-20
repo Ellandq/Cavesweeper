@@ -38,7 +38,7 @@ public class WorldGenerationHandler : MonoBehaviour
 
     private void FinishWorldGeneration (){
         RoomManager.Instance.ClearSurroundingRooms(startingPosition);
-        // RoomManager.Instance.ClearSurroundingRooms(endPosition);
+        RoomManager.Instance.ClearSurroundingRooms(endPosition);
         GameManager.Instance.SetStartingPlayerPosition(GetWorldPositionFromRoomPosition(startingPosition));
     }
 

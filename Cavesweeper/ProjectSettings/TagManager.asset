@@ -7,6 +7,7 @@ TagManager:
   - SafePillar
   - EdgeWall
   - EdgePillar
+  - Wall
   layers:
   - Default
   - TransparentFX

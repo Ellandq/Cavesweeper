@@ -36,10 +36,10 @@ public class Room : MonoBehaviour
 
     public void UnlockRoom (bool forceUnlockSurroundingRooms = false){
         if (isOpen) return;
-        if (roomType == RoomType.trapGas){
-            UnlockRoom(true);
-            return;
-        }
+        // if (roomType == RoomType.trapGas){
+        //     UnlockRoom(true);
+        //     return;
+        // }
         isOpen = true;
 
         List<RoomDirection> roomDirections = RoomManager.Instance.GetOpenNeighbourRoomDirections(gridPosition);

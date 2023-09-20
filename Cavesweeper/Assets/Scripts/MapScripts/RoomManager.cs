@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 public class RoomManager : MonoBehaviour
@@ -20,7 +21,12 @@ public class RoomManager : MonoBehaviour
 
     #region Room Interactions
     
+    public void ClearRoom (string roomName){
+        GetRoomFromWallPosition(ExtractCoordinates(roomName)).UnlockRoom();
+    }
+
     public void ClearSurroundingRooms(Vector2Int gridPosition){
+        GetRoom(gridPosition).UnlockRoom();
         List<Room> neighbourList = GetNeighbourRooms(gridPosition);
         
         foreach (Room room in neighbourList){
@@ -34,6 +40,32 @@ public class RoomManager : MonoBehaviour
 
     public Room GetRoom (Vector2Int gridPosition){
         return roomGrid[gridPosition.x, gridPosition.y];
+    }
+
+    private Room GetRoomFromWallPosition (Vector2Int wallPosition){
+        Vector2Int position = new Vector2Int();
+
+        if (wallPosition.y % 2 == 1){
+            position.x = wallPosition.x - 1;
+            position.y = (wallPosition.y - 1) / 2;
+
+            if (GetRoom(position).IsOpen()){
+                position.x++;
+                return GetRoom(position);
+            }else{
+                return GetRoom(position);
+            }
+        }else{
+            position.x = wallPosition.x;
+            position.y = wallPosition.y / 2;
+
+            if (GetRoom(position).IsOpen()){
+                position.y--;
+                return GetRoom(position);
+            }else{
+                return GetRoom(position);
+            }
+        }
     }
 
     public List<Room> GetNeighbourRooms (Vector2Int gridPosition){
@@ -108,6 +140,23 @@ public class RoomManager : MonoBehaviour
                 return GetRoom(new Vector2Int(roomPosition.x + 1, roomPosition.y)).IsOpen();
             default: 
                 return false;
+        }
+    }
+
+    public Vector2Int ExtractCoordinates(string objectName)
+    {
+        string pattern = @"Wall \( X: (\d+), Y: (\d+) \)";
+        Match match = Regex.Match(objectName, pattern);
+
+        if (match.Success && match.Groups.Count == 3)
+        {
+            int x = int.Parse(match.Groups[1].Value);
+            int y = int.Parse(match.Groups[2].Value);
+            return new Vector2Int(x, y);
+        }
+        else
+        {
+            return Vector2Int.one * 2;
         }
     }
 
