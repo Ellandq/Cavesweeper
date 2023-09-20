@@ -227,10 +227,10 @@ public class WorldGenerationHandler : MonoBehaviour
     }
 
     private GameObject[,] GenerateRoomWalls (){
-        GameObject[,] wallArray = new GameObject[GameManager.worldSize.x * 2 + 1, GameManager.worldSize.y * 2 + 1];
-        for (int x = 0; x <= GameManager.worldSize.x * 2; x++){
+        GameObject[,] wallArray = new GameObject[GameManager.worldSize.x + 1, GameManager.worldSize.y * 2 + 1];
+        for (int x = 0; x <= GameManager.worldSize.x; x++){
             for (int y = 0; y <= GameManager.worldSize.y * 2; y++){
-                Vector3 position = new Vector3(Mathf.FloorToInt(x / 2) * roomDistance, 0f, Mathf.FloorToInt(y / 2) * roomDistance);
+                Vector3 position = new Vector3(x * roomDistance, 0f, Mathf.FloorToInt(y / 2) * roomDistance);
 
                 if (y % 2 == 0){
                     if (x == GameManager.worldSize.x) continue;
@@ -250,11 +250,9 @@ public class WorldGenerationHandler : MonoBehaviour
     }
 
     private GameObject GetWallType (int x, int y){
-        
-        if (    x == 0
-            ||  y == 0
-            ||  x == GameManager.worldSize.x + 1
-            ||  y == GameManager.worldSize.y * 2 + 1){
+        if (    y == 0
+            ||  y == GameManager.worldSize.y * 2
+            ||  (y % 2 == 1 && (x == 0 || x == GameManager.worldSize.x))){
             return wallPrefabs[0];
         }else{
             return wallPrefabs[1];
@@ -282,10 +280,10 @@ public class WorldGenerationHandler : MonoBehaviour
 
     private List<GameObject> GetRoomWalls (int x, int y, GameObject[,] wallArray){
         List<GameObject> wallList = new List<GameObject>(){
-            wallArray[x, y],
-            wallArray[x, y + 1],
-            wallArray[x + 1, y + 1],
-            wallArray[x, y + 2]
+            wallArray[x, y * 2],
+            wallArray[x, y * 2 + 1],
+            wallArray[x + 1, y * 2 + 1],
+            wallArray[x, y * 2 + 2]
         };
         return wallList;
     }
