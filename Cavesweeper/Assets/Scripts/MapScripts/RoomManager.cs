@@ -50,6 +50,16 @@ public class RoomManager : MonoBehaviour
         return neighbourList;
     }
 
+    public List<RoomDirection> GetOpenNeighbourRoomDirections (Vector2Int gridPosition){
+        List<Room> neighbourRooms = GetNeighbourRooms(gridPosition);
+        List<RoomDirection> directionList = new List<RoomDirection>();
+
+        foreach (Room room in neighbourRooms){
+            directionList.Add(room.GetRoomDirection(gridPosition));
+        }
+        return directionList;
+    }
+
     public bool IsCornerValidForDestruction (Vector2Int roomPosition, Corners cornerDirection){
         switch (cornerDirection){
             case Corners.southWest:
@@ -92,6 +102,13 @@ public enum RoomType{
     empty, 
     trapSpike, trapGas, trapMonster,
     treasure
+}
+
+public enum RoomDirection{
+    north, south,
+    west, east,
+    northWest, northEast,
+    southWest, southEast
 }
 
 public enum Corners{
