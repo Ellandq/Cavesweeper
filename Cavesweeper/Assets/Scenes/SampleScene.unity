@@ -15,9 +15,9 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
   m_Fog: 1
-  m_FogColor: {r: 0.11320752, g: 0.11320752, b: 0.11320752, a: 1}
+  m_FogColor: {r: 0.042123724, g: 0, b: 0.0754717, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.03
+  m_FogDensity: 0.04
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
@@ -488,6 +488,7 @@ MonoBehaviour:
   - {fileID: 67460463872853, guid: 7d656e376a16169468b59a94ab33512c, type: 3}
   treasureRoomPrefabs:
   - {fileID: 3905922469071171676, guid: 66b01254776f3d044b7197096c5c851c, type: 3}
+  enterancePrefab: {fileID: 4353360064971422923, guid: 7f01ba90ebf48fb4ab44a17dca37f41f, type: 3}
   wallPrefabs:
   - {fileID: 2548024256959825305, guid: be9c55175a9bf2f4fbd78a3fd3283450, type: 3}
   - {fileID: 2556005786138569525, guid: 453fe96a056fff043bd8d7dc606a0928, type: 3}

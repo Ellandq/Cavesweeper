@@ -26,6 +26,7 @@ public class WorldGenerationHandler : MonoBehaviour
     [SerializeField] private List<GameObject> treasureRoomPrefabs;
 
     [Header ("Wall and Corner Prefabs")]
+    [SerializeField] private GameObject enterancePrefab;
     [SerializeField] private List<GameObject> wallPrefabs;
     [SerializeField] private List<GameObject> cornerPrefabs;
 
@@ -66,8 +67,12 @@ public class WorldGenerationHandler : MonoBehaviour
         int y = Random.Range(0, GameManager.worldSize.y);
         startingPosition = new Vector2Int(0, y);
 
+        GameObject enterance = Instantiate(enterancePrefab, GetWorldPositionFromRoomPosition(startingPosition), Quaternion.Euler(new Vector3(0f, 90f, 0f)));
+
         y = Random.Range(0, GameManager.worldSize.y);
         endPosition = new Vector2Int(GameManager.worldSize.x - 1, y);
+
+        GameObject exit = Instantiate(enterancePrefab, GetWorldPositionFromRoomPosition(endPosition), Quaternion.Euler(new Vector3(0f, 270f, 0f)));
     }
 
     private void SetUpRoomTypeCounts (){
@@ -171,7 +176,7 @@ public class WorldGenerationHandler : MonoBehaviour
         for (int x = 0; x < GameManager.worldSize.x; x++){
             for (int y = 0; y < GameManager.worldSize.y; y++){
                 Vector3 position = new Vector3(x * roomDistance, 0f, y * roomDistance);
-                GameObject room = Instantiate(GetRandomRoomPrefab(roomTypeArray[x,y]), position, Quaternion.identity);
+                GameObject room = Instantiate(GetRandomRoomPrefab(roomTypeArray[x,y], new Vector2Int(x, y)), position, Quaternion.identity);
                 room.transform.parent = roomManager;
                 roomArray[x,y] = room.GetComponent<Room>();
                 roomArray[x,y].InitializeRoom(new Vector2Int(x,y), roomTypeArray[x,y], dangerLevelArray[x,y], GetRoomWalls(x, y, wallArray), GetRoomCorners(x, y, cornerArray), false);
@@ -181,9 +186,10 @@ public class WorldGenerationHandler : MonoBehaviour
         RoomManager.Instance.SetUpRoomManager(roomArray);
     }
 
-    private GameObject GetRandomRoomPrefab (RoomType roomType){
+    private GameObject GetRandomRoomPrefab (RoomType roomType, Vector2Int gridPosition){
         switch (roomType){
             case RoomType.empty:
+                if (gridPosition == startingPosition || gridPosition == endPosition) return emptyRoomPrefabs[0];
                 return emptyRoomPrefabs[Random.Range(0, emptyRoomPrefabs.Count)];
             case RoomType.trapSpike:
                 return spikeTrapRoomPrefabs[Random.Range(0, spikeTrapRoomPrefabs.Count)];
@@ -264,7 +270,7 @@ public class WorldGenerationHandler : MonoBehaviour
     #region Getters
 
     public Vector3 GetWorldPositionFromRoomPosition (Vector2Int roomPosition){
-        return new Vector3(roomPosition.x * roomDistance, -1.52f, roomPosition.y * roomDistance);
+        return new Vector3(roomPosition.x * roomDistance, 0f, roomPosition.y * roomDistance);
     }
 
     private List<GameObject> GetRoomCorners (int x, int y, GameObject[,] cornerArray){
